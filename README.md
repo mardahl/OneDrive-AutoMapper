@@ -17,4 +17,4 @@ BLOG Post here: https://www.iphase.dk/auto-mapping-office-365-group-drives-with-
 - Group Policy Login script (User context)
 - ConfigMgr
 - Intune 
--- will only run once though, so evaluate your need and read this: https://www.iphase.dk/hacking-intune-management-extension/
+  - will only run once though, so evaluate your need and read this: https://www.iphase.dk/hacking-intune-management-extension/

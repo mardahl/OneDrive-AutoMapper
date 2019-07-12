@@ -1,6 +1,7 @@
 # OneDrive-AutoMapper
 
 A scripted solution for fully automating the sync of Document Libraries to the OneDrive desktop client.
+BLOG Post here: https://www.iphase.dk/auto-mapping-office-365-group-drives-with-onedrive/
 
 **This script will do the following:**
 - Get info on the current user executing the script

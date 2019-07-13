@@ -35,6 +35,7 @@ N.B. This is an updated version of my previous script "AutoMapUnifiedGroupDrives
     #Required credentials - Get the client_id and client_secret from the app when creating it i Azure AD
     $client_id = "88d56j01-856ja-tjdj-8166-9sdju56j56j" #App ID
     $client_secret = "i3stryjtyjdtyjdtyz1Xhl:" #API Access Key Password
+    #Idealy you would secure this secret in some way, instead of having it here in clear text.
 
     #tenant_id can be read from the azure portal of your tenant (a.k.a Directory ID, shown when you do the App Registration)
     $tenant_id = "1jd56j54-cj6d565-4d56je-9jd54-118f5d6j8" #Directory ID

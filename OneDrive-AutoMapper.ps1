@@ -13,8 +13,10 @@ After configuring it in the "config" section.
 NAME: OneDrive-AutoMapper.ps1
 VERSION: 1907b
 You need to have registered an App in Azure AD with the required permissions to have this script work with the Microsoft Graph API.
-For this script the following permissions must be assigned to the app registration, as application permissions, and Admin consent needs to be given:
-Files.Read.All, Group.Read.All, Directory.Read.All and Sites.Read.All
+For this script the following permissions must be assigned during the app registration:
+    Application Permissions : Group.Read.All, Directory.Read.All 
+    Delegated Permissions   : Sites.Read.All
+    DON'T FORGET ADMIN CONSENT!
 .COPYRIGHT
 @michael_mardahl on Twitter (new followers appreciated) / https://www.iphase.dk
 Some parts of the authentication functions have been heavily modified from their original state, initially provided by Microsoft as samples of Accessing Intune.
@@ -606,13 +608,17 @@ foreach ($Group in $allUnifiedGroups) {
     $UserHomePath = join-Path $env:HOMEDRIVE $env:HOMEPATH
     $BusinessPath = Join-Path $UserHomePath $($OneDrive.TenantName)
 
-    $syncFolders = Get-ChildItem $BusinessPath
-    foreach ($folder in $syncFolders) {
-        if ($folder.Name -like "$($Group.displayName) - *") {
-            $localSyncPath = Join-Path $BusinessPath $folder.Name
-        } else {
-            $localSyncPath = Join-Path $BusinessPath "this folder does not exits"
+    try {
+        $syncFolders = Get-ChildItem $BusinessPath -ErrorAction Stop
+        foreach ($folder in $syncFolders) {
+            if ($folder.Name -like "$($Group.displayName) - *") {
+                $localSyncPath = Join-Path $BusinessPath $folder.Name
+            } else {
+                throw "No existing business folders found."
+            }
         }
+    } catch {
+        $localSyncPath = Join-Path $BusinessPath "this folder does not exits"
     }
 
     if(Test-Path $localSyncPath){

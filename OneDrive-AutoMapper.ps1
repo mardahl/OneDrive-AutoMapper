@@ -11,7 +11,7 @@ Just run this script without any parameters in the users context
 After configuring it in the "config" section.
 .NOTES
 NAME: OneDrive-AutoMapper.ps1
-VERSION: 1907a
+VERSION: 1907b
 You need to have registered an App in Azure AD with the required permissions to have this script work with the Microsoft Graph API.
 For this script the following permissions must be assigned to the app registration, as application permissions, and Admin consent needs to be given:
 Files.Read.All, Group.Read.All, Directory.Read.All and Sites.Read.All
@@ -33,11 +33,11 @@ N.B. This is an updated version of my previous script "AutoMapUnifiedGroupDrives
 ####################################################
 
     #Required credentials - Get the client_id and client_secret from the app when creating it i Azure AD
-    $client_id = "887gh01-8fgh3a-4ge5-8gg9-98ash66809ca" #App ID
-    $client_secret = "ggeetJLD+/EthrrG8hp7y4HSog53663o25" #API Access Key Password
+    $client_id = "88d56j01-856ja-tjdj-8166-9sdju56j56j" #App ID
+    $client_secret = "i3stryjtyjdtyjdtyz1Xhl:" #API Access Key Password
 
     #tenant_id can be read from the azure portal of your tenant (a.k.a Directory ID, shown when you do the App Registration)
-    $tenant_id = "1fx5yhs4-ct55-4333-93dx-1xxxxxxc3718" #Directory ID
+    $tenant_id = "1jd56j54-cj6d565-4d56je-9jd54-118f5d6j8" #Directory ID
 
     #Set to $true to delete leftover folders from previous syncs (if false, nothing wil be synced if the destination folder already exists)
     $CleanupLeftovers = $true
@@ -157,18 +157,18 @@ Function Get-ValidToken {
         # If the authToken exists checking when it expires (converted to minutes for readability in output)
         $TokenExpires = [MATH]::floor(([int]$authToken.ExpiresOn - [int]$CurrentTimeUnix) / 60)
     
-            if($TokenExpires -le 0){
+           <# if($TokenExpires -le 0){
     
                 Write-Host "Authentication Token expired" $TokenExpires "minutes ago! - Requesting new one..." -ForegroundColor Green
-                $global:authToken = Get-AuthToken -TenantID $tenant_id -ClientID $client_id -ClientSecret $client_secret
-    
+                #>$global:authToken = Get-AuthToken -TenantID $tenant_id -ClientID $client_id -ClientSecret $client_secret
+    <#
             }
             else{
 
                 Write-Host "Using valid Authentication Token that expires in" $TokenExpires "minutes..." -ForegroundColor Green
                 Write-Host
 
-            }
+            }#>
 
     }
     
@@ -273,7 +273,7 @@ Function Get-UnifiedGroupDrive(){
     .DESCRIPTION
     The function connects to the Graph API Interface and gets all files in a unified group
     .EXAMPLE
-    Get-UnifiedGroupFiles -groupID "00000000-0000000-0000000"
+    Get-UnifiedGroupDrive -groupID "00000000-0000000-0000000"
     .NOTES
     NAME: Get-UnifiedGroupFiles
     PREREQUISITES: Requires a global authToken (properly formattet hashtable header) to be set as $authToken 
@@ -296,7 +296,7 @@ Function Get-UnifiedGroupDrive(){
     
     catch {
     
-        FatalWebError -Exeption $_.Exception -Function "Get-UnifiedGroupFiles"
+        FatalWebError -Exeption $_.Exception -Function "Get-UnifiedGroupDrive"
     
     }
 
@@ -580,7 +580,7 @@ foreach ($Group in $allUnifiedGroups) {
     if (!$($group.groupTypes -like "Unified*")){Continue} 
 
     # Validate that the users is not already Syncing the Drive
-    if ($OneDrive.MountPoints -like "$($Group.displayName)*"){
+    if ($OneDrive.MountPoints -match "$($Group.displayName) - "){
         
         Write-Host "The drive ($($Group.displayName)) is already synced! Skipping..." -ForegroundColor Yellow
         Write-Host

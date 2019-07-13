@@ -11,7 +11,7 @@ Just run this script without any parameters in the users context
 After configuring it in the "config" section.
 .NOTES
 NAME: OneDrive-AutoMapper.ps1
-VERSION: 1907b
+VERSION: 1907c
 You need to have registered an App in Azure AD with the required permissions to have this script work with the Microsoft Graph API.
 For this script the following permissions must be assigned during the app registration:
     Application Permissions : Group.Read.All, Directory.Read.All 
@@ -49,13 +49,14 @@ N.B. This is an updated version of my previous script "AutoMapUnifiedGroupDrives
     #Seconds to wait between each mount - not having a delay can cause OneDrive to barf when adding multiple sync folders at once. (default: 3 sec)
     $waitSec = 3
 
-    #Special params for some advanced modification
-    $global:graphApiVersion = "v1.0" #should be "v1.0"
-
     #List of site names to exclude from being added to OneDrive
     #Just add the name of the site to this array, and remove the dummy entries.
     $excludeSiteList = @("DummyDumDum","Blankorama","Nonenana")
 
+    #Special params for some advanced modification
+    $global:sharedDocumentsName = "Shared Documents" #change if for some reason your tenant displays the shared documents folders with another name
+    $global:graphApiVersion = "v1.0" #should be "v1.0"
+    $VerbosePreference = "Continue" #change to SilentlyContinue to dial down the output.
 
 ####################################################
 #
@@ -160,18 +161,18 @@ Function Get-ValidToken {
         # If the authToken exists checking when it expires (converted to minutes for readability in output)
         $TokenExpires = [MATH]::floor(([int]$authToken.ExpiresOn - [int]$CurrentTimeUnix) / 60)
     
-           <# if($TokenExpires -le 0){
+           if($TokenExpires -le 0){
     
                 Write-Host "Authentication Token expired" $TokenExpires "minutes ago! - Requesting new one..." -ForegroundColor Green
-                #>$global:authToken = Get-AuthToken -TenantID $tenant_id -ClientID $client_id -ClientSecret $client_secret
-    <#
+                $global:authToken = Get-AuthToken -TenantID $tenant_id -ClientID $client_id -ClientSecret $client_secret
+    
             }
             else{
 
                 Write-Host "Using valid Authentication Token that expires in" $TokenExpires "minutes..." -ForegroundColor Green
                 Write-Host
 
-            }#>
+            }
 
     }
     
@@ -389,9 +390,7 @@ Function Get-CurrentUserODInfo(){
                     $ODuserFolder = Get-ItemProperty -Path "Registry::$($Account.Name)" | Select-Object -ExpandProperty UserFolder
                     $ODuserTenantName = Get-ItemProperty -Path "Registry::$($Account.Name)" | Select-Object -ExpandProperty DisplayName
                     #Getting a list of Existing MountPoints that are synced with the OneDrive Client (key might not exist is no drives are syncing, so we silently continue on any error.
-                    $MountPoints = Get-ItemProperty -Path "Registry::$($Account.Name)\Tenants\$ODuserTenantName" -ErrorAction SilentlyContinue
-
-
+                    $MountPoints = Get-Item -Path "Registry::$($Account.Name)\Tenants\$ODuserTenantName" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Property
                 }
         }
     }
@@ -458,7 +457,7 @@ Function Get-GroupODSyncURL(){
         }
 
         #Finding the correct ListID for the "Shared Documents" library
-        $sharedDocumentsListId = $ListInfo | Where-Object Name -Match "Shared Documents" | Select-Object -ExpandProperty id
+        $sharedDocumentsListId = $ListInfo | Where-Object Name -Match $sharedDocumentsName | Select-Object -ExpandProperty id
         $listid = [System.Web.HttpUtility]::UrlEncode($sharedDocumentsListId)
 
         #Returning the correctly assembled ODOPEN URL
@@ -583,8 +582,7 @@ foreach ($Group in $allUnifiedGroups) {
     if (!$($group.groupTypes -like "Unified*")){Continue} 
 
     # Validate that the users is not already Syncing the Drive
-    if ($OneDrive.MountPoints -match "$($Group.displayName) - "){
-        
+    if ($($OneDrive.MountPoints) -match [Regex]::Escape("\$($Group.displayName) -")){
         Write-Host "The drive ($($Group.displayName)) is already synced! Skipping..." -ForegroundColor Yellow
         Write-Host
         continue #skip this group and go to the next group

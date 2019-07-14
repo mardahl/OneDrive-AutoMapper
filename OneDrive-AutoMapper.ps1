@@ -11,7 +11,7 @@ Just run this script without any parameters in the users context
 After configuring it in the "config" section.
 .NOTES
 NAME: OneDrive-AutoMapper.ps1
-VERSION: 1907d
+VERSION: 1907e
 You need to have registered an App in Azure AD with the required permissions to have this script work with the Microsoft Graph API.
 For this script the following permissions must be assigned during the app registration:
     Application Permissions : Group.Read.All, Directory.Read.All 
@@ -517,7 +517,7 @@ function WaitForOneDrive () {
     .SYNOPSIS
     This function will check to see if OneDrive is Running on the local machine
     .DESCRIPTION
-    The function poll's for the OneDrive process every second, and will resume script eecution, once it's running
+    The function poll's for the OneDrive process every second, and will resume script execution, once it's running
     .EXAMPLE
     WaitForOneDrive
     .NOTES
@@ -525,7 +525,7 @@ function WaitForOneDrive () {
     #>
 
     $started = $false
-    $maxWaitSec = 120 #maximum number of seconds we are willing to wait for the OneDrive Process. (not an exact counter, might be a bit longer)
+    $maxWaitSec = 300 #maximum number of seconds we are willing to wait for the OneDrive Process. (not an exact counter, might be a bit longer)
     $wait = 0 #Initial Wait counter
 
     Do {

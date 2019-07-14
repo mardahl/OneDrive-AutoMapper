@@ -11,12 +11,13 @@ Just run this script without any parameters in the users context
 After configuring it in the "config" section.
 .NOTES
 NAME: OneDrive-AutoMapper.ps1
-VERSION: 1907c
+VERSION: 1907d
 You need to have registered an App in Azure AD with the required permissions to have this script work with the Microsoft Graph API.
 For this script the following permissions must be assigned during the app registration:
     Application Permissions : Group.Read.All, Directory.Read.All 
     Delegated Permissions   : Sites.Read.All
     DON'T FORGET ADMIN CONSENT!
+Log file output to users %TEMP% folder (%temp%\OneDrive-AutoMapper_log.txt)
 .COPYRIGHT
 @michael_mardahl on Twitter (new followers appreciated) / https://www.iphase.dk
 Some parts of the authentication functions have been heavily modified from their original state, initially provided by Microsoft as samples of Accessing Intune.
@@ -558,6 +559,9 @@ function WaitForOneDrive () {
 #
 ######################################################
 
+# Starting log
+Start-Transcript "$env:TEMP\OneDrive-AutoMapper_log.txt" -Force
+
 # Wait for OneDrive Process
 WaitForOneDrive
 
@@ -583,7 +587,7 @@ foreach ($Group in $allUnifiedGroups) {
 
     # Validate that the users is not already Syncing the Drive
     if ($($OneDrive.MountPoints) -match [Regex]::Escape("\$($Group.displayName) -")){
-        Write-Host "The drive ($($Group.displayName)) is already synced! Skipping..." -ForegroundColor Yellow
+        Write-Host "The site ($($Group.displayName)) is already synced! Skipping..." -ForegroundColor Yellow
         Write-Host
         continue #skip this group and go to the next group
     }
@@ -603,41 +607,33 @@ foreach ($Group in $allUnifiedGroups) {
     }
 
     # Check for leftover folders, and start sync if none found, else cleanup and start sync.
-    $UserHomePath = join-Path $env:HOMEDRIVE $env:HOMEPATH
-    $BusinessPath = Join-Path $UserHomePath $($OneDrive.TenantName)
+    $UserHomePath = join-Path -Path $env:HOMEDRIVE -ChildPath $env:HOMEPATH
+    $BusinessPath = Join-Path -Path $UserHomePath -ChildPath $($OneDrive.TenantName)
 
     try {
         $syncFolders = Get-ChildItem $BusinessPath -ErrorAction Stop
         foreach ($folder in $syncFolders) {
-            if ($folder.Name -like "$($Group.displayName) - *") {
-                $localSyncPath = Join-Path $BusinessPath $folder.Name
-            } else {
-                throw "No existing business folders found."
+            if (($($folder.Name) -like ("$($Group.displayName) - *")) -and ($CleanupLeftovers -eq $true)) {
+                $localSyncPath = Join-Path -Path $BusinessPath -ChildPath $($folder.Name) -ErrorAction SilentlyContinue
+                 "Found existing sync for folder for : $($Group.displayName)"
+                Write-Host "Leftover Folder Found for $localSyncPath" -ForegroundColor Red
+                Write-Host '$CleanupLeftovers is set to true - Deleting old folder and starting sync' -ForegroundColor Yellow
+                Remove-Item -Path $localSyncPath -Force -Recurse -ErrorAction SilentlyContinue
+            } elseif ($($folder.Name) -like ("$($Group.displayName) - *")) {
+                Write-Host "Existing folder found for : '$($Group.displayName)'" -ForegroundColor Red
+                Write-Host "OneDrive will complain because 'CleanupLeftovers' is not set to True." -ForegroundColor Red
             }
         }
     } catch {
-        $localSyncPath = Join-Path $BusinessPath "this folder does not exits"
-    }
-
-    if(Test-Path $localSyncPath){
-
-        Write-Host "Leftover Folder Found for $localSyncPath" -ForegroundColor Red
-
-        if ($CleanupLeftovers -eq $true) {
-                
-            Write-Host '$CleanupLeftovers is set to true - Deleting old folder and starting sync' -ForegroundColor Yellow
-            Remove-Item -Path $localSyncPath -Force -Recurse
-            Start $ODsyncURL # Sending site info to the OneDrive client
-            Sleep -Seconds $waitSec
-        }
-
-    } else {
-
-        Write-Host "The site ($($Group.displayName)) is NOT synced! Adding to OneDrive client..." -ForegroundColor Yellow
-        Start $ODsyncURL # Sending site info to the OneDrive client
-        Sleep -Seconds $waitSec
+        Write-Verbose "No previous sync folders found for this user in path : $BusinessPath"
     }
 
     Write-Host
+    Write-Host "The site ($($Group.displayName)) is NOT synced! Adding to OneDrive client..." -ForegroundColor Yellow
+    Start $ODsyncURL # Sending site info to the OneDrive client
+    Sleep -Seconds $waitSec
+    Write-Host
     
 }
+#Ending log
+Stop-Transcript

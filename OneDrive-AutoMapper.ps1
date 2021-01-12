@@ -492,7 +492,7 @@ Function Get-DriveMembers(){
         $GroupID
     )
        
-    $Resource = "/groups/$GroupID/members"
+    $Resource = "groups/$GroupID/members"
     $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
 
     try {

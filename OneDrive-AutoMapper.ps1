@@ -250,7 +250,7 @@ Function Get-UnifiedGroups(){
     )
 
     #$Resource = "myorganization/groups"
-    $Resource = "/users/$UPN/memberOf"
+    $Resource = "users/$UPN/memberOf"
     $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
 
     try {

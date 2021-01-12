@@ -3,21 +3,25 @@
 
 .SYNOPSIS
 This script will Automap/Sync Unified Group Drives (Office 365 Groups / Teams Files) with the Next Gen OneDrive Client
+
 .DESCRIPTION
 The script will iterate through all Unified Groups and map them with the OneDrive client, if permissions are OK for the currently logged on user.
 It will only mappe the "Shared Documents" library, because is the only name that is known. you can modify this script to map any library you like if you have the skills.
+
 .EXAMPLE
 Just run this script without any parameters in the users context
 After configuring it in the "config" section.
+
 .NOTES
 NAME: OneDrive-AutoMapper.ps1
-VERSION: 1907e
+VERSION: 2101
 You need to have registered an App in Azure AD with the required permissions to have this script work with the Microsoft Graph API.
 For this script the following permissions must be assigned during the app registration:
     Application Permissions : Group.Read.All, Directory.Read.All 
     Delegated Permissions   : Sites.Read.All
     DON'T FORGET ADMIN CONSENT!
 Log file output to users %TEMP% folder (%temp%\OneDrive-AutoMapper_log.txt)
+
 .COPYRIGHT
 @michael_mardahl on Twitter (new followers appreciated) / https://www.iphase.dk
 Some parts of the authentication functions have been heavily modified from their original state, initially provided by Microsoft as samples of Accessing Intune.

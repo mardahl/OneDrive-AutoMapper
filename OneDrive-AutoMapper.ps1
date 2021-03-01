@@ -1129,7 +1129,7 @@ If ($runningContext.User -eq 'S-1-5-18') {
     $ScriptBlock = {
         & $PSScriptRoot\OneDrive-AutoMapper.ps1 -TenantID $TenantID -ClientID $ClientID -ClientSecret $ClientSecret
     }
-    Invoke-AsCurrentUser -UseWindowsPowerShell -NonElevatedSession -Visible -ScriptBlock $ScriptBlock
+    Invoke-AsCurrentUser -UseWindowsPowerShell -NonElevatedSession -ScriptBlock $ScriptBlock
 }
 else {
     Mount-OneDriveUnifiedGroups -TenantID $TenantID -ClientID $ClientID -ClientSecret $ClientSecret
